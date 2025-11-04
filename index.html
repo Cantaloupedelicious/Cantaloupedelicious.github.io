@@ -1,0 +1,310 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>温馨提醒</title>
+    <style>
+        body {
+            font-family: 'Microsoft YaHei', sans-serif;
+            background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+            margin: 0;
+            padding: 20px;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+        
+        .container {
+            max-width: 500px;
+            width: 100%;
+            text-align: center;
+        }
+        
+        h1 {
+            color: #ff6b6b;
+            margin-bottom: 30px;
+            text-shadow: 1px 1px 3px rgba(0,0,0,0.1);
+        }
+        
+        .control-panel {
+            background: white;
+            border-radius: 15px;
+            padding: 20px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+            margin-bottom: 20px;
+        }
+        
+        .tip-display {
+            background: white;
+            border-radius: 15px;
+            padding: 20px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+            margin-bottom: 20px;
+            min-height: 120px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 22px;
+            transition: all 0.3s ease;
+        }
+        
+        .btn {
+            background: #4ecdc4;
+            color: white;
+            border: none;
+            padding: 12px 25px;
+            margin: 10px;
+            border-radius: 50px;
+            font-size: 16px;
+            cursor: pointer;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+            transition: all 0.3s ease;
+            font-family: 'Microsoft YaHei', sans-serif;
+        }
+        
+        .btn:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 7px 20px rgba(0,0,0,0.15);
+        }
+        
+        .btn-stop {
+            background: #ff6b6b;
+        }
+        
+        .btn-new {
+            background: #45b7d1;
+        }
+        
+        .floating-tip {
+            position: fixed;
+            background: white;
+            border-radius: 10px;
+            padding: 15px;
+            box-shadow: 0 5px 25px rgba(0,0,0,0.15);
+            max-width: 250px;
+            text-align: center;
+            font-size: 18px;
+            z-index: 1000;
+            animation: fadeIn 0.5s, float 3s infinite alternate;
+            cursor: pointer;
+        }
+        
+        @keyframes fadeIn {
+            from { opacity: 0; transform: scale(0.8); }
+            to { opacity: 1; transform: scale(1); }
+        }
+        
+        @keyframes float {
+            from { transform: translateY(0); }
+            to { transform: translateY(-10px); }
+        }
+        
+        .color-1 { background-color: lightpink; }
+        .color-2 { background-color: skyblue; }
+        .color-3 { background-color: lightgreen; }
+        .color-4 { background-color: lavender; }
+        .color-5 { background-color: orange; }
+        .color-6 { background-color: pink; }
+        .color-7 { background-color: lightblue; }
+        .color-8 { background-color: lightyellow; }
+        .color-9 { background-color: honeydew; }
+        
+        .settings {
+            margin-top: 20px;
+            background: white;
+            border-radius: 15px;
+            padding: 15px;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+        }
+        
+        .setting-item {
+            margin: 10px 0;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        
+        input[type="range"] {
+            width: 60%;
+        }
+        
+        .counter {
+            margin-top: 15px;
+            font-size: 14px;
+            color: #666;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>💖 温馨提醒 💖</h1>
+        
+        <div class="control-panel">
+            <p>点击下方按钮获取温馨提醒</p>
+            <button class="btn btn-new" id="newTip">获取新提醒</button>
+            <button class="btn btn-stop" id="stopAll">停止所有提醒</button>
+            <button class="btn" id="autoMode">自动模式</button>
+        </div>
+        
+        <div class="tip-display" id="currentTip">
+            点击"获取新提醒"开始
+        </div>
+        
+        <div class="settings">
+            <h3>设置</h3>
+            <div class="setting-item">
+                <label for="tipCount">同时显示的提醒数量:</label>
+                <input type="range" id="tipCount" min="1" max="10" value="3">
+                <span id="tipCountValue">3</span>
+            </div>
+            <div class="setting-item">
+                <label for="autoDelay">自动模式间隔(秒):</label>
+                <input type="range" id="autoDelay" min="2" max="10" value="5">
+                <span id="autoDelayValue">5</span>
+            </div>
+        </div>
+        
+        <div class="counter">
+            已显示 <span id="tipCounter">0</span> 条提醒
+        </div>
+    </div>
+
+    <script>
+        // 温馨提醒列表
+        const tips = [
+            '多喝热水哦', '保持微笑呀', '每天都要元气满满', '记得吃水果', 
+            '保持好心情', '好好爱自己', '梦想成真', '期待下一次见面', 
+            '金榜题名', '早点休息', '顺顺利利', '别熬夜', '天冷了，多穿衣服',
+            '记得按时吃饭', '今天也要加油', '你是最棒的', '记得放松眼睛',
+            '保持积极心态', '相信你自己', '一切都会好的', '注意休息'
+        ];
+        
+        // 颜色列表
+        const colors = [
+            'color-1', 'color-2', 'color-3', 'color-4', 'color-5',
+            'color-6', 'color-7', 'color-8', 'color-9'
+        ];
+        
+        // 变量初始化
+        let activeTips = [];
+        let tipCounter = 0;
+        let autoModeInterval = null;
+        const maxTips = 10;
+        
+        // 获取DOM元素
+        const newTipBtn = document.getElementById('newTip');
+        const stopAllBtn = document.getElementById('stopAll');
+        const autoModeBtn = document.getElementById('autoMode');
+        const currentTip = document.getElementById('currentTip');
+        const tipCounterEl = document.getElementById('tipCounter');
+        const tipCountSlider = document.getElementById('tipCount');
+        const tipCountValue = document.getElementById('tipCountValue');
+        const autoDelaySlider = document.getElementById('autoDelay');
+        const autoDelayValue = document.getElementById('autoDelayValue');
+        
+        // 更新滑块显示值
+        tipCountSlider.addEventListener('input', function() {
+            tipCountValue.textContent = this.value;
+        });
+        
+        autoDelaySlider.addEventListener('input', function() {
+            autoDelayValue.textContent = this.value;
+        });
+        
+        // 创建新的提醒窗口
+        function createTipWindow() {
+            if (activeTips.length >= maxTips) {
+                removeTip(activeTips[0]);
+            }
+            
+            const tipText = tips[Math.floor(Math.random() * tips.length)];
+            const colorClass = colors[Math.floor(Math.random() * colors.length)];
+            
+            // 更新当前提醒显示
+            currentTip.textContent = tipText;
+            currentTip.className = 'tip-display ' + colorClass;
+            
+            // 创建浮动提醒
+            const tipEl = document.createElement('div');
+            tipEl.className = 'floating-tip ' + colorClass;
+            tipEl.textContent = tipText;
+            
+            // 随机位置
+            const x = Math.random() * (window.innerWidth - 250);
+            const y = Math.random() * (window.innerHeight - 150);
+            tipEl.style.left = x + 'px';
+            tipEl.style.top = y + 'px';
+            
+            // 点击关闭
+            tipEl.addEventListener('click', function() {
+                removeTip(tipEl);
+            });
+            
+            document.body.appendChild(tipEl);
+            activeTips.push(tipEl);
+            
+            // 更新计数器
+            tipCounter++;
+            tipCounterEl.textContent = tipCounter;
+        }
+        
+        // 移除提醒
+        function removeTip(tipEl) {
+            const index = activeTips.indexOf(tipEl);
+            if (index > -1) {
+                activeTips.splice(index, 1);
+            }
+            if (tipEl && tipEl.parentNode) {
+                tipEl.parentNode.removeChild(tipEl);
+            }
+        }
+        
+        // 停止所有提醒
+        function stopAllTips() {
+            // 清除所有浮动提醒
+            activeTips.forEach(tip => {
+                if (tip.parentNode) {
+                    tip.parentNode.removeChild(tip);
+                }
+            });
+            activeTips = [];
+            
+            // 停止自动模式
+            if (autoModeInterval) {
+                clearInterval(autoModeInterval);
+                autoModeInterval = null;
+                autoModeBtn.textContent = '自动模式';
+            }
+            
+            // 重置当前提醒显示
+            currentTip.textContent = '已停止所有提醒';
+            currentTip.className = 'tip-display';
+        }
+        
+        // 切换自动模式
+        function toggleAutoMode() {
+            if (autoModeInterval) {
+                clearInterval(autoModeInterval);
+                autoModeInterval = null;
+                autoModeBtn.textContent = '自动模式';
+            } else {
+                const delay = parseInt(autoDelaySlider.value) * 1000;
+                autoModeInterval = setInterval(createTipWindow, delay);
+                autoModeBtn.textContent = '停止自动';
+            }
+        }
+        
+        // 事件监听
+        newTipBtn.addEventListener('click', createTipWindow);
+        stopAllBtn.addEventListener('click', stopAllTips);
+        autoModeBtn.addEventListener('click', toggleAutoMode);
+        
+        // 初始加载时显示一条提醒
+        window.addEventListener('load', function() {
+            setTimeout(createTipWindow, 500);
+        });
+    </script>
+</body>
+</html>
